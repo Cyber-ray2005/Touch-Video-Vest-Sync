@@ -1,10 +1,11 @@
-### Sample code for python
 
-### Prerequisite
-* bHaptics Player has to be installed (Windows)
-   * The app can be found in
-   bHaptics webpage: [http://www.bhaptics.com](http://bhaptics.com/)
+Install Requirements with
 
-### Dependencies
-* websocket-client
+pip install -r requirements.txt
+
+Then launch aimlab_haptics.py with the command
+
+[Add command here]
+
+IMPORTANT NOTE : While using the python code, bhaptics player must be open, but Feedback Test must not be open.
 
