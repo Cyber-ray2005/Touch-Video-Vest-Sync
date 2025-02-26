@@ -18,8 +18,21 @@ Each row in the patterns represents a time step, and each motor position contain
 an intensity value (0-100).
 """
 
+import signal
 from time import sleep
 from haptics_motor_control import activate_discrete, player
+
+# Global flag for graceful exit
+should_exit = False
+
+def signal_handler(signum, frame):
+    """Handle Ctrl+C by setting the exit flag."""
+    global should_exit
+    print("\nReceived Ctrl+C. Gracefully exiting...")
+    should_exit = True
+
+# Register the signal handler
+signal.signal(signal.SIGINT, signal_handler)
 
 # Wave Pattern (5 time steps)
 # Each step shows the wave moving from top to bottom
@@ -193,9 +206,17 @@ def activate_motor_array(pattern_step: dict, duration_ms: int):
             - Values represent motor intensities (0-100)
         duration_ms (int): Duration for each motor activation in milliseconds
     """
+    global should_exit
+    if should_exit:
+        return False
+
     # Process front panel
     for row in range(5):
+        if should_exit:
+            return False
         for col in range(4):
+            if should_exit:
+                return False
             motor_idx = row * 4 + col
             intensity = pattern_step["front"][row][col]
             if intensity > 0:
@@ -203,17 +224,24 @@ def activate_motor_array(pattern_step: dict, duration_ms: int):
     
     # Process back panel
     for row in range(5):
+        if should_exit:
+            return False
         for col in range(4):
+            if should_exit:
+                return False
             motor_idx = row * 4 + col
             intensity = pattern_step["back"][row][col]
             if intensity > 0:
                 activate_discrete('back', motor_idx, intensity, duration_ms)
     
     # Wait for this step to complete before moving to next
-    sleep(duration_ms / 1000.0 + 0.1)
+    if not should_exit:
+        sleep(duration_ms / 1000.0 + 0.1)
+    return True
 
 def example_wave_pattern():
     """Creates an example wave pattern moving from top to bottom."""
+    global should_exit
     # Initialize the player
     player.initialize()
     
@@ -222,6 +250,9 @@ def example_wave_pattern():
     
     # Activate each step in the pattern
     for step, pattern in enumerate(WAVE_PATTERN, 1):
+        if should_exit:
+            print("\nWave pattern interrupted.")
+            return
         print(f"\nStep {step}:")
         print("Front panel:")
         for row in pattern["front"]:
@@ -230,17 +261,24 @@ def example_wave_pattern():
         for row in pattern["back"]:
             print(row)
         
-        activate_motor_array(pattern, duration_ms=500)
+        if not activate_motor_array(pattern, duration_ms=500):
+            print("\nWave pattern interrupted.")
+            return
     
-    print("\nPattern complete!")
+    if not should_exit:
+        print("\nPattern complete!")
 
 def example_alternating_pattern():
     """Creates an example pattern alternating between front and back panels."""
+    global should_exit
     print("\nRunning alternating pattern...")
     print("Pattern steps:", len(ALTERNATING_PATTERN))
     
     # Activate each step in the pattern
     for step, pattern in enumerate(ALTERNATING_PATTERN, 1):
+        if should_exit:
+            print("\nAlternating pattern interrupted.")
+            return
         print(f"\nStep {step}:")
         print("Front panel:")
         for row in pattern["front"]:
@@ -249,16 +287,20 @@ def example_alternating_pattern():
         for row in pattern["back"]:
             print(row)
         
-        activate_motor_array(pattern, duration_ms=1000)
+        if not activate_motor_array(pattern, duration_ms=1000):
+            print("\nAlternating pattern interrupted.")
+            return
     
-    print("\nPattern complete!")
+    if not should_exit:
+        print("\nPattern complete!")
 
 if __name__ == "__main__":
     try:
         # Run example patterns
         example_wave_pattern()
-        sleep(1)  # Pause between patterns
-        example_alternating_pattern()
+        if not should_exit:
+            sleep(1)  # Pause between patterns
+            example_alternating_pattern()
         
     except Exception as e:
         print(f"An error occurred: {e}")

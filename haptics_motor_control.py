@@ -28,9 +28,22 @@ Usage:
         $ python haptics_motor_control.py
 """
 
+import signal
 from time import sleep
 from bhaptics import better_haptic_player as player
 from bhaptics.better_haptic_player import BhapticsPosition
+
+# Global flag for graceful exit
+should_exit = False
+
+def signal_handler(signum, frame):
+    """Handle Ctrl+C by setting the exit flag."""
+    global should_exit
+    print("\nReceived Ctrl+C. Gracefully exiting...")
+    should_exit = True
+
+# Register the signal handler
+signal.signal(signal.SIGINT, signal_handler)
 
 # Actual motor coordinate positions on the vest
 # These represent the physical layout of motors
@@ -145,40 +158,48 @@ def activate_discrete(panel: str, motor_index: int, intensity: int, duration_ms:
 
 def test_funnelling():
     """Interactive test function for the funnelling effect activation method."""
+    global should_exit
     print("\nbHaptics Funnelling Effect Test")
     print("==============================")
     print("This program allows you to test motor activation using funnelling effect.")
     print("The coordinates you provide will activate the nearest motor on the vest.")
     print("Coordinate system: X (0.0=left to 1.0=right), Y (0.0=bottom to 1.0=top)")
     
-    while True:
+    while not should_exit:
         try:
             print("\nEnter parameters (or 'q' to quit):")
             panel_input = input("Panel (front/back): ").strip().lower()
             
-            if panel_input == 'q':
+            if panel_input == 'q' or should_exit:
                 break
                 
             if panel_input not in ['front', 'back']:
                 print("Invalid panel selection. Please enter 'front' or 'back'")
                 continue
                 
+            if should_exit:
+                break
+                
             x = float(input("X coordinate (0.0-1.0): "))
             y = float(input("Y coordinate (0.0-1.0): "))
             intensity = int(input("Intensity (0-100): "))
             duration = int(input("Duration (milliseconds): "))
             
+            if should_exit:
+                break
+                
             print(f"\nActivating nearest motor to coordinates: {panel_input} panel, x={x:.2f}, y={y:.2f}")
             success = activate_funnelling(panel_input, x, y, intensity, duration)
             
-            if success:
+            if success and not should_exit:
                 print("Motor activated successfully")
                 sleep(duration / 1000.0 + 0.1)
             
-            print('\nDevice Status:')
-            print('-------------')
-            print('Playback active:', player.is_playing())
-            print('Vest connected:', player.is_device_connected(BhapticsPosition.Vest.value))
+            if not should_exit:
+                print('\nDevice Status:')
+                print('-------------')
+                print('Playback active:', player.is_playing())
+                print('Vest connected:', player.is_device_connected(BhapticsPosition.Vest.value))
             
         except ValueError as e:
             print(f"Invalid input: Please enter numeric values in the specified ranges")
@@ -205,6 +226,7 @@ def test_discrete():
     - [0]: Top-left motor
     - [19]: Bottom-right motor
     """
+    global should_exit
     print("\nbHaptics Discrete Motor Test")
     print("===========================")
     print("This program allows you to test individual motors using their index numbers.")
@@ -216,33 +238,40 @@ def test_discrete():
     print("[12] [13] [14] [15]")
     print("[16] [17] [18] [19]")
     
-    while True:
+    while not should_exit:
         try:
             print("\nEnter parameters (or 'q' to quit):")
             panel_input = input("Panel (front/back): ").strip().lower()
             
-            if panel_input == 'q':
+            if panel_input == 'q' or should_exit:
                 break
                 
             if panel_input not in ['front', 'back']:
                 print("Invalid panel selection. Please enter 'front' or 'back'")
                 continue
                 
+            if should_exit:
+                break
+                
             motor_index = int(input("Motor index (0-19): "))
             intensity = int(input("Intensity (0-100): "))
             duration = int(input("Duration (milliseconds): "))
             
+            if should_exit:
+                break
+                
             print(f"\nActivating motor {motor_index} on {panel_input} panel")
             success = activate_discrete(panel_input, motor_index, intensity, duration)
             
-            if success:
+            if success and not should_exit:
                 print("Motor activated successfully")
                 sleep(duration / 1000.0 + 0.1)
             
-            print('\nDevice Status:')
-            print('-------------')
-            print('Playback active:', player.is_playing())
-            print('Vest connected:', player.is_device_connected(BhapticsPosition.Vest.value))
+            if not should_exit:
+                print('\nDevice Status:')
+                print('-------------')
+                print('Playback active:', player.is_playing())
+                print('Vest connected:', player.is_device_connected(BhapticsPosition.Vest.value))
             
         except ValueError as e:
             print(f"Invalid input: Please enter numeric values in the specified ranges")
@@ -254,11 +283,12 @@ def main():
     Main function that provides a menu to choose between funnelling effect
     and discrete motor activation testing methods.
     """
+    global should_exit
     # Initialize the bHaptics player
     print("Initializing bHaptics player...")
     player.initialize()
     
-    while True:
+    while not should_exit:
         print("\nbHaptics Motor Test Menu")
         print("=======================")
         print("1: Test Funnelling Effect (using x,y coordinates)")
@@ -267,7 +297,7 @@ def main():
         
         choice = input("\nEnter your choice: ").strip().lower()
         
-        if choice == 'q':
+        if choice == 'q' or should_exit:
             break
         elif choice == '1':
             test_funnelling()
@@ -277,4 +307,9 @@ def main():
             print("Invalid choice. Please try again.")
 
 if __name__ == "__main__":
-    main() 
+    try:
+        main()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        print("\nExecution complete.") 
