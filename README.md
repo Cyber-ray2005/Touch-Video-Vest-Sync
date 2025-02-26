@@ -3,6 +3,8 @@
 [![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![bHaptics](https://img.shields.io/badge/bHaptics-SDK-orange.svg)](https://www.bhaptics.com/develop)
+[![Works On My Machine](https://img.shields.io/badge/Works-On%20My%20Machine-brightgreen.svg)](https://github.com/nikku/works-on-my-machine)
+
 
 This project provides Python scripts for controlling bHaptics haptic feedback devices locally, specifically designed for integration at AIMLAB. The implementation allows direct motor control and pattern playback without using the Official bHaptics API.
 
