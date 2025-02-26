@@ -16,25 +16,9 @@ Usage:
         $ python haptics_pattern_player.py
 """
 
-import signal
-import sys
 from time import sleep
 from bhaptics import better_haptic_player as player
 from bhaptics.better_haptic_player import BhapticsPosition
-
-# Global flag for graceful exit
-should_exit = False
-
-def signal_handler(signum, frame):
-    """Handle Ctrl+C by setting the exit flag."""
-    global should_exit
-    print("\nReceived Ctrl+C. Gracefully exiting...")
-    should_exit = True
-    # Stop any ongoing pattern playback
-    player.stop()
-
-# Register the signal handler
-signal.signal(signal.SIGINT, signal_handler)
 
 def load_and_play_tact_file():
     """
@@ -110,7 +94,7 @@ def load_and_play_tact_file():
         poll_interval = 0.5  # seconds
         
         # Continuously poll the playback status using the registration key.
-        while player.is_playing_key(tact_key) and elapsed_time < max_duration and not should_exit:
+        while player.is_playing_key(tact_key) and elapsed_time < max_duration:
             # Compute percentage complete based on the elapsed time.
             percent_complete = min((elapsed_time / max_duration) * 100, 100)
             print(f"Pattern '{tact_key}' is playing... {elapsed_time:.1f} seconds elapsed. {percent_complete:.0f}% complete.")
@@ -130,20 +114,10 @@ def load_and_play_tact_file():
 
     print("Exiting haptics playback function.")
 
-def main():
-    """Main function to test pattern playback."""
-    global should_exit
-    if len(sys.argv) != 2:
-        print("Usage: python haptics_pattern_player.py <pattern_file.tact>")
-        return
-    
-    pattern_file = sys.argv[1]
-    load_and_play_tact_file()
-
 if __name__ == "__main__":
     try:
-        main()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        print("\nExecution complete.")
+        # Prompt the user to begin the haptics playback.
+        input("Press Enter to begin haptics playback...")
+        load_and_play_tact_file()
+    except Exception as main_error:
+        print("An unexpected error occurred during main execution:", main_error)

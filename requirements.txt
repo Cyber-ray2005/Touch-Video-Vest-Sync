@@ -1,11 +1,3 @@
-# Core dependencies for bHaptics integration
 websocket-client~=0.57.0
 python-osc~=1.7.4
 keyboard~=0.13.5
-
-# System and utility dependencies
-signal
-time
-sys
-
-# Note: signal, time, and sys are part of Python's standard library and don't need to be installed separately.
