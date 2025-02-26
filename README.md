@@ -88,8 +88,9 @@ keyboard~=0.13.5
    pip install -r requirements.txt
    ```
 
-3. Ensure bHaptics Player is running on your system
-4. Connect your bHaptics device
+3. 🚨⚠️ Ensure bHaptics Player is running on your system
+4. 🚨⚠️ IMPORTANT: Ensure your bHaptics Player is not in Feedback Test Mode
+5. Connect your bHaptics device
 
 ## Usage
 
