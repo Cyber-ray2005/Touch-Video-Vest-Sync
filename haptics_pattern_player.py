@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Module: haptics_player.py
+Module: haptics_pattern_player.py
 Author: Pi Ko (pi.ko@nyu.edu)
 Description:
     This module demonstrates how to load and play a haptic tact file on the bHaptics jacket/tactsuit.
@@ -9,8 +9,11 @@ Description:
     During playback, the percentage of the total pattern completed is displayed.
     
 Usage:
+    Install dependencies if you haven't already:
+        pip install -r requirements.txt
+
     Simply run this script:
-        $ python haptics_player.py
+        $ python haptics_pattern_player.py
 """
 
 from time import sleep
