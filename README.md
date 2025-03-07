@@ -23,16 +23,19 @@ This project provides Python scripts for controlling bHaptics haptic feedback de
   - Discrete motor activation using indices
   - Intensity control (0-100)
   - Duration control (milliseconds)
+  - Ctrl+C to safely quit
 
 - **Pattern Playback**: Support for pre-designed haptic patterns
   - Load and play `.tact` pattern files
   - Synchronized front and back panel activation
   - Multiple pattern support
+  - Ctrl+C to safely quit
 
 - **Matrix Control Interface**: Intuitive array-based control
   - Visual pattern definition matching physical layout
   - Support for complex activation sequences
   - Built-in example patterns (wave, alternating)
+  - Ctrl+C to safely quit
 
 ## Project Structure
 
@@ -125,6 +128,8 @@ activate_discrete(
 )
 ```
 
+You can press Ctrl+C at any time to safely quit the program.
+
 ### 2. Matrix Pattern Control (`array_example.py`)
 
 Create and play patterns using intuitive matrix representation:
@@ -151,6 +156,8 @@ pattern_step = {
 activate_motor_array(pattern_step, duration_ms=500)
 ```
 
+You can press Ctrl+C at any time to safely quit the program.
+
 ### 3. Pattern Playback (`haptics_pattern_player.py`)
 
 Play pre-designed `.tact` patterns:
@@ -161,6 +168,8 @@ from haptics_pattern_player import play_pattern
 # Play a .tact file pattern
 play_pattern("AIMlab_Haptics_Jacket_Patterns.tact")
 ```
+
+You can press Ctrl+C at any time to safely quit the program.
 
 ## Testing
 

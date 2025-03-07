@@ -16,10 +16,21 @@ Front/Back Panel Physical Layout:
 
 Each row in the patterns represents a time step, and each motor position contains
 an intensity value (0-100).
+
+This script can now be properly terminated with Ctrl+C at any time.
 """
 
+import signal
+import sys
+import threading
+import time
+import os
 from time import sleep
 from haptics_motor_control import activate_discrete, player
+
+# Global flags to control execution
+running = True
+cleanup_done = False  # Track if cleanup has been performed
 
 # Wave Pattern (5 time steps)
 # Each step shows the wave moving from top to bottom
@@ -183,6 +194,74 @@ ALTERNATING_PATTERN = [
     }
 ]
 
+def signal_handler(sig, frame):
+    """
+    Handle Ctrl+C (SIGINT) by setting the running flag to False and cleaning up resources.
+    
+    Args:
+        sig: Signal number
+        frame: Current stack frame
+    """
+    global running, cleanup_done
+    print("\nInterrupting haptics playback...")
+    running = False
+    
+    # Only perform cleanup if it hasn't been done already
+    if not cleanup_done:
+        cleanup()
+    
+    # Force exit to ensure all threads are terminated
+    os._exit(0)  # Use os._exit instead of sys.exit to force immediate termination
+
+def cleanup():
+    """
+    Clean up resources and properly destroy the player connection.
+    This method ensures that we first close the WebSocket connection and set it to None
+    before destroying the player to prevent exceptions from background threads.
+    """
+    global cleanup_done
+    
+    # Skip if cleanup has already been done
+    if cleanup_done:
+        return
+        
+    try:
+        print("Cleaning up resources...")
+        
+        # The key fix: Set ws to None first to prevent background thread from using it
+        if hasattr(player, 'ws') and player.ws is not None:
+            # Store reference to the socket before closing it
+            ws = player.ws
+            # Set the ws attribute to None first to signal threads to stop
+            player.ws = None
+            # Close the socket
+            try:
+                ws.close()
+            except Exception:
+                pass  # Ignore errors when closing
+        
+        # Short delay to let threads notice the closed connection
+        time.sleep(0.5)
+        
+        # Now it's safe to destroy the player
+        player.destroy()
+        print("Cleanup completed successfully.")
+        
+        # Mark cleanup as done to prevent duplicate calls
+        cleanup_done = True
+    except Exception as cleanup_error:
+        print(f"Error during cleanup: {cleanup_error}")
+
+def initialize_haptics():
+    """Initialize the haptics player."""
+    print("Initializing the bHaptics player...")
+    player.initialize()
+    
+    print("Initialization successful.")
+    # Wait a moment to ensure connection is established
+    print("Waiting for WebSocket connection to stabilize...")
+    time.sleep(1)
+
 def activate_motor_array(pattern_step: dict, duration_ms: int):
     """
     Activates motors based on a pattern step dictionary containing front and back panel layouts.
@@ -210,19 +289,28 @@ def activate_motor_array(pattern_step: dict, duration_ms: int):
                 activate_discrete('back', motor_idx, intensity, duration_ms)
     
     # Wait for this step to complete before moving to next
-    sleep(duration_ms / 1000.0 + 0.1)
+    # Add running check to allow for interruption
+    step_start = time.time()
+    step_duration = duration_ms / 1000.0 + 0.1
+    
+    while running and (time.time() - step_start < step_duration):
+        time.sleep(0.1)  # Check running flag more frequently for faster response to interruption
 
 def example_wave_pattern():
     """Creates an example wave pattern moving from top to bottom."""
-    # Initialize the player
-    player.initialize()
+    global running
     
     print("Running wave pattern...")
     print("Pattern steps:", len(WAVE_PATTERN))
     
     # Activate each step in the pattern
     for step, pattern in enumerate(WAVE_PATTERN, 1):
-        print(f"\nStep {step}:")
+        # Check if execution was interrupted
+        if not running:
+            print("\nWave pattern interrupted.")
+            return
+            
+        print(f"Step {step}:")
         print("Front panel:")
         for row in pattern["front"]:
             print(row)
@@ -232,16 +320,23 @@ def example_wave_pattern():
         
         activate_motor_array(pattern, duration_ms=500)
     
-    print("\nPattern complete!")
+    print("\nWave pattern complete!")
 
 def example_alternating_pattern():
     """Creates an example pattern alternating between front and back panels."""
+    global running
+    
     print("\nRunning alternating pattern...")
     print("Pattern steps:", len(ALTERNATING_PATTERN))
     
     # Activate each step in the pattern
     for step, pattern in enumerate(ALTERNATING_PATTERN, 1):
-        print(f"\nStep {step}:")
+        # Check if execution was interrupted
+        if not running:
+            print("\nAlternating pattern interrupted.")
+            return
+            
+        print(f"Step {step}:")
         print("Front panel:")
         for row in pattern["front"]:
             print(row)
@@ -251,16 +346,43 @@ def example_alternating_pattern():
         
         activate_motor_array(pattern, duration_ms=1000)
     
-    print("\nPattern complete!")
+    print("\nAlternating pattern complete!")
 
 if __name__ == "__main__":
+    # Set up signal handler for Ctrl+C
+    signal.signal(signal.SIGINT, signal_handler)
+    
     try:
+        print("=== bHaptics Array Example ===")
+        print("This script demonstrates haptic patterns using matrix representation.")
+        print("Make sure:")
+        print("1. The bHaptics Player app is running on your computer")
+        print("2. Your device is connected and paired in the app")
+        print("\nPress Ctrl+C at any time to stop the patterns.")
+        
+        # Initialize haptics
+        initialize_haptics()
+        
         # Run example patterns
         example_wave_pattern()
-        sleep(1)  # Pause between patterns
-        example_alternating_pattern()
         
+        # Only run the next pattern if we haven't been interrupted
+        if running:
+            sleep(1)  # Pause between patterns
+            example_alternating_pattern()
+        
+    except KeyboardInterrupt:
+        # This should be caught by the signal handler, but just in case
+        print("\nExecution interrupted by user.")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        print("\nExecution complete.") 
+        # Ensure cleanup happens even if an unexpected error occurs
+        # Only perform cleanup if it hasn't been done already
+        if not cleanup_done:
+            cleanup()
+        print("\nExecution complete.")
+        
+        # Force Python to exit after the script completes
+        # This ensures we don't have any lingering threads
+        os._exit(0)
