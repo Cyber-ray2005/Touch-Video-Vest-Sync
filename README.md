@@ -44,6 +44,13 @@ This project provides Python scripts for controlling bHaptics haptic feedback de
   - Real-time intensity and duration control
   - Clear 4x5 grid layout showing all 20 motors per panel
 
+- **Gloves Control Interface**: Direct control of bHaptics gloves
+  - Individual motor control for left and right gloves
+  - 6 motors per glove
+  - Interactive motor selection and activation
+  - Parameter-based motor control
+  - Ctrl+C to safely quit
+
 ![bHaptics Visualizer Interface](Visualizer.png)
 
 ## Project Structure
@@ -54,6 +61,7 @@ bHaptics-AIMLAB/
 ├── haptics_motor_control.py     # Direct motor control interface
 ├── array_example.py            # Matrix-based pattern examples
 ├── haptics_visualizer.pyw      # GUI application for vest visualization and control
+├── haptics_gloves.py          # Gloves motor control interface
 ├── AIMlab_Haptics_Jacket_Patterns.tact  # Pre-designed patterns
 ├── bhaptics/                  # bHaptics SDK library (do not modify)
 └── requirements.txt           # Python dependencies
@@ -198,6 +206,34 @@ The visualizer provides:
 - Toggle between Discrete Motor and Funneling Effect modes (press 'D' or 'F')
 - Adjustable intensity and duration sliders
 - Press ESC to exit
+
+### 5. Gloves Control Interface (`haptics_gloves.py`)
+
+Control the bHaptics gloves motors:
+
+```python
+from haptics_gloves import activate_glove_motor
+
+# Activate a specific motor on the left glove
+activate_glove_motor(
+    hand='left',        # 'left' or 'right'
+    motor_index=0,      # 0 to 5
+    intensity=100,      # 0 to 100
+    duration_ms=1000    # milliseconds
+)
+```
+
+Run the interactive gloves control interface:
+```bash
+python haptics_gloves.py
+```
+
+Features:
+- Select left or right glove
+- Choose motor index (0-5)
+- Set intensity and duration
+- Interactive menu-driven interface
+- Press Ctrl+C to safely quit
 
 ## Testing
 
