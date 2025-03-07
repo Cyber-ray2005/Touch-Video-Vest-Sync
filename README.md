@@ -37,6 +37,15 @@ This project provides Python scripts for controlling bHaptics haptic feedback de
   - Built-in example patterns (wave, alternating)
   - Ctrl+C to safely quit
 
+- **Visual GUI Interface**: Interactive graphical interface for haptic control
+  - Full screen visualization of front and back vest panels
+  - Interactive motor activation on mouse hover
+  - Support for both discrete motor and funneling effect modes
+  - Real-time intensity and duration control
+  - Clear 4x5 grid layout showing all 20 motors per panel
+
+![bHaptics Visualizer Interface](Visualizer.png)
+
 ## Project Structure
 
 ```
@@ -44,6 +53,7 @@ bHaptics-AIMLAB/
 ├── haptics_pattern_player.py    # Pattern playback from .tact files
 ├── haptics_motor_control.py     # Direct motor control interface
 ├── array_example.py            # Matrix-based pattern examples
+├── haptics_visualizer.pyw      # GUI application for vest visualization and control
 ├── AIMlab_Haptics_Jacket_Patterns.tact  # Pre-designed patterns
 ├── bhaptics/                  # bHaptics SDK library (do not modify)
 └── requirements.txt           # Python dependencies
@@ -170,6 +180,24 @@ play_pattern("AIMlab_Haptics_Jacket_Patterns.tact")
 ```
 
 You can press Ctrl+C at any time to safely quit the program.
+
+### 4. Visual GUI Interface (`haptics_visualizer.pyw`)
+
+Launch the interactive graphical interface:
+
+```bash
+# On Windows
+pythonw haptics_visualizer.pyw
+
+# On macOS/Linux
+python haptics_visualizer.pyw
+```
+
+The visualizer provides:
+- Interactive motor activation by hovering over motors
+- Toggle between Discrete Motor and Funneling Effect modes (press 'D' or 'F')
+- Adjustable intensity and duration sliders
+- Press ESC to exit
 
 ## Testing
 
