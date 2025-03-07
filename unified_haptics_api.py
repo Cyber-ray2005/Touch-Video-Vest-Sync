@@ -1556,8 +1556,6 @@ if __name__ == "__main__":
         traceback.print_exc()
     finally:
         # Ensure cleanup happens even if an unexpected error occurs
-        global cleanup_done, haptics_server
-        
         if not cleanup_done:
             print("Performing final cleanup...")
             if 'haptics_server' in globals():
