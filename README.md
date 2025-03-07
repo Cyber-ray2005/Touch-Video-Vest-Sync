@@ -112,7 +112,7 @@ keyboard~=0.13.5
 4. 🚨⚠️ IMPORTANT: Ensure your bHaptics Player is not in Feedback Test Mode
 5. Connect your bHaptics device
 
-## Usage
+## Usage (Standalone Python Scripts)
 
 ### 1. Direct Motor Control (`haptics_motor_control.py`)
 
@@ -244,6 +244,197 @@ python array_example.py
 This will demonstrate:
 1. Wave pattern (top to bottom)
 2. Alternating pattern (front/back activation)
+
+
+
+---
+
+# Unified bHaptics API for Unity
+
+This project provides a robust bridge between Unity and bHaptics devices through a Python UDP server. The implementation allows Unity applications to easily control haptic feedback effects on bHaptics vests, gloves, and other devices with automatic discovery, reliable connection management, and comprehensive error handling.
+
+**Author:** Pi Ko (pi.ko@nyu.edu)  
+**Date:** March 7, 2025
+
+## Overview
+
+The system consists of two main components:
+
+1. **Python UDP Server (`unified_haptics_api.py`)**: A standalone Python server that interfaces with the bHaptics SDK and exposes functionality over a network-friendly UDP API.
+
+2. **Unity Client (`UnifiedHapticsClient.cs`)**: A Unity client that communicates with the Python server, handling discovery, connections, and providing a simple API for game developers.
+
+This architecture provides several benefits:
+- **Compatibility**: Works across platforms without requiring native integration in Unity
+- **Simplified Development**: Easy-to-use haptic effect API without low-level SDK knowledge
+- **Auto-Discovery**: Automatically finds the server on the network
+- **Fault Tolerance**: Handles disconnections and reconnects automatically
+
+## Setup Instructions
+
+### Prerequisites
+
+- bHaptics Player software installed and running
+- Python 3.7+ installed
+- Unity 2020.3+ project
+
+### Python Server Setup
+
+1. Copy the `unified_haptics_api.py` script to your computer
+2. Install the required dependencies:
+   ```
+   pip install bhaptics asyncio
+   ```
+3. Run the server:
+   ```
+   python unified_haptics_api.py
+   ```
+
+The server will start and listen for Unity client connections.
+
+### Unity Client Setup
+
+1. Create a new Unity project or use an existing one
+2. Import the Newtonsoft.Json package via the Package Manager (required for JSON handling)
+3. Copy the following C# scripts to your Assets folder:
+   - `UnifiedHapticsClient.cs`
+   - `HapticsTestController.cs` (optional - for testing)
+   - `HapticsPatternCreator.cs` (optional - for advanced effects)
+
+4. Create an empty GameObject in your scene and add the `UnifiedHapticsClient` component to it
+5. Configure the settings in the inspector if needed (the defaults should work in most cases)
+
+## Using the API
+
+### Basic Usage
+
+```csharp
+// Reference to the client
+[SerializeField] private UnifiedHapticsClient hapticsClient;
+
+// Connect manually (if not using autoConnectOnStart)
+void StartConnection() {
+    hapticsClient.ConnectToServer();
+}
+
+// Activate motors
+void TriggerHapticFeedback() {
+    // Activate specific motor on the front panel
+    hapticsClient.ActivateDiscreteMotor("front", 10, 80, 300);
+    
+    // Use funnelling effect
+    hapticsClient.ActivateFunnelling("back", 0.5f, 0.7f, 100, 500);
+    
+    // Play pre-defined patterns
+    hapticsClient.PlayWavePattern();
+    hapticsClient.PlayAlternatingPattern();
+}
+```
+
+### Creating Custom Patterns
+
+```csharp
+// Reference to the pattern creator
+[SerializeField] private HapticsPatternCreator patternCreator;
+
+void PlayCustomEffect() {
+    // Use pre-built effects
+    patternCreator.PlayHeartbeatPattern(intensity: 80, repeats: 3);
+    patternCreator.PlayCircularPattern(clockwise: true, intensity: 70);
+    patternCreator.PlayImpactPattern("front", 0.5f, 0.5f, intensity: 90);
+    
+    // Game-specific effects
+    patternCreator.PlayDamageEffect(damageDirection: 45f, intensity: 80);
+    patternCreator.PlayHealingEffect(intensity: 60);
+    patternCreator.PlayFireEffect(duration: 3.0f, intensity: 70);
+}
+```
+
+### Creating Patterns from Scratch
+
+```csharp
+// Create an empty pattern with 5 steps
+var pattern = patternCreator.CreateEmptyPattern(5);
+
+// Set specific motors in each step
+patternCreator.SetMotor(pattern, stepIndex: 0, panel: "front", motorIndex: 0, intensity: 100);
+patternCreator.SetMotor(pattern, stepIndex: 1, panel: "front", motorIndex: 1, intensity: 100);
+patternCreator.SetMotor(pattern, stepIndex: 2, panel: "front", motorIndex: 2, intensity: 100);
+
+// Play the pattern
+patternCreator.PlayCustomPattern(pattern, stepDuration: 200);
+```
+
+## Device Support
+
+The API supports the following bHaptics devices:
+- Tactsuit (Vest)
+- Tactosy for arms (left and right)
+- Tactosy for hands (left and right gloves)
+
+## Command Reference
+
+The Unity client supports the following main functions:
+
+### Basic Controls
+- `ConnectToServer()`: Automatically discover and connect to the server
+- `ConnectToServerDirectly(string ipAddress)`: Connect directly to a server IP
+- `Disconnect()`: Disconnect from the server
+
+### Motor Control
+- `ActivateDiscreteMotor(panel, motorIndex, intensity, durationMs)`: Activate a specific motor
+- `ActivateFunnelling(panel, x, y, intensity, durationMs)`: Activate motors using funnelling effect
+- `ActivateGloveMotor(glove, motorIndex, intensity, durationMs)`: Activate a motor on a glove
+
+### Pattern Control
+- `PlayWavePattern()`: Play the wave pattern from top to bottom
+- `PlayAlternatingPattern()`: Play the alternating pattern between front and back
+- `PlayCustomPattern(pattern, durationMs)`: Play a custom pattern
+- `PlayPattern(patternFile, key)`: Play a pattern from a tact file
+- `StopPattern(key)`: Stop pattern playback
+
+### Status and Events
+- `GetDeviceStatus(deviceType)`: Get the status of connected devices
+- `RegisterEventHandler(eventType, handler)`: Register for event notifications
+- `UnregisterEventHandler(eventType)`: Unregister from events
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection Failures**
+   - Ensure the Python server is running
+   - Check firewall settings (UDP ports 9128 and 9129 need to be open)
+   - Verify bHaptics Player is running
+
+2. **No Haptic Feedback**
+   - Confirm devices are properly connected in bHaptics Player
+   - Check battery levels on wireless devices
+   - Verify intensity values are > 0
+
+3. **API Errors**
+   - Check the Unity Console for detailed error messages
+   - Look at the Python server console output for server-side errors
+
+### Logging
+
+The API includes comprehensive logging:
+- Unity client logs to the Unity Console
+- Python server logs to both console and `haptics_api.log` file
+
+## License
+
+This project is provided for educational purposes. Use in your own projects is permitted with attribution.
+
+## Acknowledgments
+
+- bHaptics for providing the Python SDK
+- Unity Technologies for the Unity Engine
+
+---
+
+For questions, issues, or feature requests, please contact Pi Ko (pi.ko@nyu.edu).
+
 
 ## Contributing
 
