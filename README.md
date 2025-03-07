@@ -8,7 +8,7 @@
 
 This project provides Python scripts for controlling bHaptics haptic feedback devices locally, specifically designed for integration at AIMLAB. The implementation allows direct motor control and pattern playback without using the Official bHaptics API.
 
-![bHaptics Jacket Layout](Jacket.png)
+<img src="Jacket.png" width="400" alt="bHaptics Jacket Layout">
 
 
 ## Author
