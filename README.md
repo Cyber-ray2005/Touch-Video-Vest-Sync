@@ -252,7 +252,7 @@ This will demonstrate:
 
 This project includes components to easily integrate bHaptics functionality into Unity applications.
 
-![Haptics System Architecture](Jacket.png)
+![Unity Integration](Official_unity_logo.png)
 
 ### System Architecture
 
