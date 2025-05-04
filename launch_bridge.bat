@@ -16,4 +16,4 @@ REM Change to the directory where this batch file is located
 cd /d "%~dp0"
 
 REM Run the Python script using the default Python interpreter
-python haptics_bridge.py
+python touchy_script.py
